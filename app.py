@@ -1,3 +1,4 @@
+import os
 from datetime import date
 
 import streamlit as st
@@ -9,10 +10,13 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="wide")
 # Session State — initialize exactly once per browser session
 # ---------------------------------------------------------------------------
 if "owner_data" not in st.session_state:
-    default_pet = Pet(name="Mochi", species="dog", age=3)
-    default_owner = Owner(name="Jordan", available_time_mins=60)
-    default_owner.pets.append(default_pet)
-    st.session_state.owner_data = default_owner
+    if os.path.exists("data/data.json"):
+        st.session_state.owner_data = Owner.load_from_json("data/data.json")
+    else:
+        default_pet = Pet(name="Mochi", species="dog", age=3)
+        default_owner = Owner(name="Jordan", available_time_mins=60)
+        default_owner.pets.append(default_pet)
+        st.session_state.owner_data = default_owner
 
 if "owner_name" not in st.session_state:
     st.session_state.owner_name = st.session_state.owner_data.name
@@ -77,6 +81,10 @@ with col_left:
     )
     st.session_state.owner_data.name = owner_name
     st.session_state.owner_data.available_time_mins = int(available_time)
+
+    if st.button("Save Data", use_container_width=True):
+        st.session_state.owner_data.save_to_json("data/data.json")
+        st.success("Saved to data.json")
 
     st.divider()
 

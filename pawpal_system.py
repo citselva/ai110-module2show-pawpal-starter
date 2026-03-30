@@ -1,4 +1,5 @@
 import json
+import os
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import List, Optional, Tuple
@@ -39,6 +40,31 @@ class Task:
     def toggle_complete(self) -> None:
         """Toggles the completion status of the task."""
         self.is_completed = not self.is_completed
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "duration": self.duration,
+            "priority": self.priority,
+            "is_required": self.is_required,
+            "is_completed": self.is_completed,
+            "start_time": self.start_time,
+            "frequency": self.frequency,
+            "due_date": self.due_date.isoformat(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Task":
+        return cls(
+            name=data["name"],
+            duration=data["duration"],
+            priority=data["priority"],
+            is_required=data.get("is_required", False),
+            is_completed=data.get("is_completed", False),
+            start_time=data.get("start_time"),
+            frequency=data.get("frequency", "one-off"),
+            due_date=date.fromisoformat(data.get("due_date", date.today().isoformat())),
+        )
 
 
 @dataclass
@@ -94,6 +120,20 @@ class Pet:
         else:
             task.is_completed = True
 
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "species": self.species,
+            "age": self.age,
+            "tasks": [t.to_dict() for t in self.tasks],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Pet":
+        pet = cls(name=data["name"], species=data["species"], age=data["age"])
+        pet.tasks = [Task.from_dict(t) for t in data.get("tasks", [])]
+        return pet
+
 
 @dataclass
 class Owner:
@@ -130,6 +170,29 @@ class Owner:
             for task in pet.tasks
             if task.due_date <= today and not task.is_completed
         ]
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "available_time_mins": self.available_time_mins,
+            "pets": [p.to_dict() for p in self.pets],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Owner":
+        owner = cls(name=data["name"], available_time_mins=data["available_time_mins"])
+        owner.pets = [Pet.from_dict(p) for p in data.get("pets", [])]
+        return owner
+
+    def save_to_json(self, filename: str) -> None:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+    @classmethod
+    def load_from_json(cls, filename: str) -> "Owner":
+        with open(filename, "r") as f:
+            return cls.from_dict(json.load(f))
 
     def filter_tasks(
         self,
