@@ -1,0 +1,32 @@
+classDiagram
+    class User {
+        +String name
+        +int available_time_mins
+        +set_budget(mins: int)
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +int age
+        +get_summary() String
+    }
+
+    class Task {
+        +String name
+        +int duration
+        +int priority
+        +String category
+        +bool is_completed
+        +toggle_complete()
+    }
+
+    class CarePlanner {
+        +generate_schedule(tasks: List~Task~) List~Task~
+        +get_reasoning() String
+    }
+
+    User "1" --> "many" Pet : owns
+    Pet "1" --> "many" Task : has
+    CarePlanner --> User : references
+    CarePlanner --> Pet : references
