@@ -1,4 +1,5 @@
 import streamlit as st
+from pawpal_system import Task, Pet, Owner, Scheduler
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -38,16 +39,47 @@ At minimum, your system should:
 
 st.divider()
 
-st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
+# ---------------------------------------------------------------------------
+# Vault: initialize persistent state exactly once per browser session.
+# st.session_state survives every top-to-bottom re-run; this block is the
+# "door" — it only executes when the key is absent (i.e., first load).
+# ---------------------------------------------------------------------------
+if "owner_data" not in st.session_state:
+    default_pet = Pet(name="Mochi", species="dog", age=3)
+    default_owner = Owner(name="Jordan", available_time_mins=60)
+    default_owner.pets.append(default_pet)
+    st.session_state.owner_data = default_owner
 
-st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
+# Seed the widget keys from the stored object — only on first run.
+# After that, Streamlit keeps them in sync via the key= parameter.
+if "owner_name" not in st.session_state:
+    st.session_state.owner_name = st.session_state.owner_data.name
+
+if "pet_name" not in st.session_state:
+    first_pet = st.session_state.owner_data.pets[0] if st.session_state.owner_data.pets else None
+    st.session_state.pet_name = first_pet.name if first_pet else ""
 
 if "tasks" not in st.session_state:
     st.session_state.tasks = []
+
+# ---------------------------------------------------------------------------
+
+st.subheader("Quick Demo Inputs")
+
+# key= links each widget directly to st.session_state — changes persist across
+# re-runs automatically.  No value= needed once the key is seeded above.
+owner_name = st.text_input("Owner name", key="owner_name")
+pet_name = st.text_input("Pet name", key="pet_name")
+species = st.selectbox("Species", ["dog", "cat", "other"])
+
+# Keep the Owner object in sync with whatever the user typed.
+st.session_state.owner_data.name = owner_name
+if st.session_state.owner_data.pets:
+    st.session_state.owner_data.pets[0].name = pet_name
+    st.session_state.owner_data.pets[0].species = species
+
+st.markdown("### Tasks")
+st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
 
 col1, col2, col3 = st.columns(3)
 with col1:
