@@ -7,6 +7,19 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+My initial design identifies four distinct classes to separate data management from scheduling logic, ensuring the system follows the Single Responsibility Principle:
+
+1.  **User**: Acts as the "Owner" profile, holding the global constraints such as `available_time_mins` (the daily time "budget").
+2.  **Pet**: Stores animal-specific metadata (species, age, requirements) and serves as the link between the owner and the care activities.
+3.  **Task**: A granular data object representing a single unit of work (e.g., "Meds," "Walk"). It holds attributes for `duration_mins`, `priority_level` (1-5), and `category`.
+4.  **CarePlanner**: The "Engine" of the application. It processes the `User` budget and the `Task` list to calculate an optimized schedule and generate natural language reasoning for the owner.
+
+**The system focuses on three core user actions:**
+* **Profile Setup:** Entering pet details and defining the owner's total time "budget" for the day.
+* **Task Management:** Adding and editing care tasks with specific durations and priority rankings.
+* **Smart Scheduling:** Generating a constrained daily plan that fits the time budget and provides an explanation for the task selection.
+
+
 **b. Design changes**
 
 - Did your design change during implementation?
