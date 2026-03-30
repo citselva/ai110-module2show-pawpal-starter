@@ -114,20 +114,20 @@ class Owner:
 
         Iterates over every ``Pet`` in ``self.pets`` and flattens their
         ``tasks`` lists into a single sequence, filtering out tasks whose
-        ``due_date`` is in the future. This drives the scheduler's view of
-        what work is actionable on a given day.
+        ``due_date`` is in the future and tasks that are permanently completed.
+        This drives the scheduler's view of what work is actionable on a given day.
 
         Returns:
-            A flat list of ``Task`` objects due today or overdue, in
-            pet-insertion order. Returns an empty list when the owner has no
-            pets or all tasks are future-dated.
+            A flat list of ``Task`` objects due today or overdue that have not
+            been permanently completed, in pet-insertion order. Returns an empty
+            list when the owner has no pets or all tasks are future-dated or done.
         """
         today = date.today()
         return [
             task
             for pet in self.pets
             for task in pet.tasks
-            if task.due_date <= today
+            if task.due_date <= today and not task.is_completed
         ]
 
     def filter_tasks(
